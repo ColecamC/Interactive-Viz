@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { margin: 0; background: #1a1a2e; font-family: sans-serif; }
+    #container { display: flex; height: 100vh; }
+    #map-area { flex: 1; }
+    #panel {
+      width: 380px; background: #16213e; color: white;
+      padding: 16px; display: none; flex-direction: column; gap: 10px;
+    }
+    #panel h2 { margin: 0; font-size: 1.1rem; }
+    #panel p  { margin: 0; font-size: 0.85rem; color: #aaa; }
+    #wms-container { position: relative; width: 100%; border-radius: 4px; overflow: hidden; }
+    #wms-container img { position: absolute; top: 0; left: 0; width: 100%; display: block; }
+    #wms-base   { position: relative !important; }
+    #wms-labels { opacity: 0.85; mix-blend-mode: multiply; }
+    circle.settlement {
+      stroke: none; opacity: 0.7; cursor: pointer;
+      transition: opacity 0.15s, r 0.15s;
+    }
+    circle.settlement:hover { opacity: 1; r: 5; }
+    circle.selected { stroke: white; stroke-width: 1.5; opacity: 1; }
+  </style>
+</head>
+<body>
+<div id="container">
+  <svg id="map-area"></svg>
+  <div id="panel">
+    <h2 id="s-name"></h2>
+    <p id="s-info"></p>
+    <div id="wms-container">
+      <img id="wms-base"   src="" alt="Loading satellite image..."/>
+      <img id="wms-labels" src="" alt=""/>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson@3"></script>
+<script src="map.js"></script>
+</body>
+</html>
