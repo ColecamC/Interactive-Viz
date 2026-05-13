@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>California August Complex Fire · Smoke Tracker 2020</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500&display=swap');
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #070f0d;
+      font-family: 'Inter', sans-serif;
+      color: white;
+      overflow: hidden;
+    }
+
+    #container {
+      display: flex;
+      height: 100vh;
+    }
+
+    #map-area {
+      flex: 1;
+      position: relative;
+    }
+
+    /* ── SIDE PANEL ─────────────────────────────────────────── */
+    #panel {
+      width: 380px;
+      background: #080e0c;
+      border-left: 1px solid #152018;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #panel-header {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid #152018;
+    }
+
+    #panel-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #ff6b35;
+      margin: 0 0 4px;
+    }
+
+    #panel-subtitle {
+      font-size: 0.78rem;
+      color: #3a5a44;
+      margin: 0;
+      font-weight: 300;
+    }
+
+    /* ── DATE SLIDER SECTION ────────────────────────────────── */
+    #date-section {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid #152018;
+    }
+
+    #date-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+    }
+
+    #date-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.1rem;
+      color: #fff;
+      letter-spacing: 0.05em;
+    }
+
+    #date-day-name {
+      font-size: 0.72rem;
+      color: #ff6b35;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    #date-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 3px;
+      background: #152018;
+      border-radius: 2px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    #date-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ff6b35;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(255, 107, 53, 0.6);
+      transition: box-shadow 0.2s;
+    }
+
+    #date-slider::-webkit-slider-thumb:hover {
+      box-shadow: 0 0 16px rgba(255, 107, 53, 0.9);
+    }
+
+    #date-slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ff6b35;
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 0 8px rgba(255, 107, 53, 0.6);
+    }
+
+    #date-ticks {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      padding: 0 1px;
+    }
+
+    .tick {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.55rem;
+      color: #1f3a28;
+      text-align: center;
+    }
+
+    .tick.active { color: #ff6b35; }
+
+    #playback-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    #play-btn, #speed-btn {
+      background: none;
+      border: 1px solid #1f3a28;
+      color: #ff6b35;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      padding: 5px 12px;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: background 0.2s, border-color 0.2s;
+      text-transform: uppercase;
+    }
+
+    #play-btn:hover, #speed-btn:hover {
+      background: rgba(255, 107, 53, 0.1);
+      border-color: #ff6b35;
+    }
+
+    #speed-btn {
+      min-width: 38px;
+      color: #e0a060;
+    }
+
+    #aod-stat {
+      font-size: 0.72rem;
+      color: #2a4a33;
+      margin-left: auto;
+    }
+
+    #aod-stat span {
+      color: #e0a060;
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* ── LEGEND ─────────────────────────────────────────────── */
+    #legend-section {
+      padding: 16px 20px;
+      border-bottom: 1px solid #152018;
+    }
+
+    #legend-label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #2a4a33;
+      margin-bottom: 8px;
+    }
+
+    #legend-bins {
+      display: flex;
+      width: 100%;
+      height: 16px;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    #legend-bins div {
+      flex: 1;
+    }
+
+    #legend-axis {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 5px;
+    }
+
+    #legend-axis span {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.55rem;
+      color: #2a4a33;
+    }
+
+    #fire-legend {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    #fire-legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ff4400;
+      box-shadow: 0 0 4px #ff6600;
+      flex-shrink: 0;
+    }
+
+    #fire-legend-label {
+      font-size: 0.62rem;
+      color: #2a4a33;
+      font-family: 'Space Mono', monospace;
+    }
+
+    /* ── SETTLEMENT INFO ────────────────────────────────────── */
+    #settlement-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #s-header {
+      padding: 16px 20px 12px;
+      border-bottom: 1px solid #152018;
+    }
+
+    #s-name {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.95rem;
+      margin: 0 0 4px;
+      color: #fff;
+    }
+
+    #s-info {
+      font-size: 0.75rem;
+      color: #3a5a44;
+      margin: 0;
+      font-weight: 300;
+    }
+
+    #wms-container {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      overflow: hidden;
+      min-height: 180px;
+    }
+
+    #wms-container img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      display: block;
+    }
+
+    #wms-base   { position: relative !important; }
+    #wms-labels { opacity: 0.85; mix-blend-mode: multiply; }
+
+    #no-selection {
+      padding: 20px;
+      font-size: 0.75rem;
+      color: #1a3020;
+      font-style: italic;
+      line-height: 1.6;
+    }
+
+    /* ── MAP ELEMENTS ───────────────────────────────────────── */
+    circle.settlement {
+      stroke: none;
+      opacity: 0.7;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+
+    circle.settlement:hover { opacity: 1; }
+    circle.selected { stroke: white; stroke-width: 1.5; opacity: 1; }
+
+    .settlement-layer { pointer-events: all; }
+
+    /* ── MAP TITLE OVERLAY ──────────────────────────────────── */
+    #map-overlay {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      pointer-events: none;
+    }
+
+    #map-overlay h1 {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin: 0;
+    }
+
+    #map-svg {
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+<div id="container">
+
+  <div id="map-area">
+    <svg id="map-svg"></svg>
+    <div id="map-overlay">
+      <h1>MODIS MAIAC · Aerosol Optical Depth · August Complex Fire 2020</h1>
+    </div>
+  </div>
+
+  <div id="panel">
+
+    <div id="panel-header">
+      <p id="panel-title">August Complex Fire</p>
+      <p id="panel-subtitle">NASA MODIS MCD19A2 · AOD 550nm · Aug–Nov 2020</p>
+    </div>
+
+    <div id="date-section">
+      <div id="date-label-row">
+        <span id="date-label">2020-08-16</span>
+        <span id="date-day-name">Sunday</span>
+      </div>
+
+      <input type="range" id="date-slider" min="0" max="88" value="0" step="1">
+
+      <div id="date-ticks">
+        <span class="tick active">Aug 16</span>
+        <span class="tick">Sep 8</span>
+        <span class="tick">Oct 1</span>
+        <span class="tick">Oct 24</span>
+        <span class="tick">Nov 12</span>
+      </div>
+
+      <div id="playback-row">
+        <button id="play-btn">▶ Play</button>
+        <button id="speed-btn">1×</button>
+        <div id="aod-stat">Date: <span id="point-count">—</span></div>
+      </div>
+    </div>
+
+    <div id="legend-section">
+      <div id="legend-label">Aerosol Optical Depth (AOD)</div>
+      <div id="legend-bins">
+        <div style="background: rgba(180,220,255,0.35);"></div>
+        <div style="background: rgba(100,170,255,0.55);"></div>
+        <div style="background: rgba(50,110,255,0.72);"></div>
+        <div style="background: rgba(20,55,210,0.88);"></div>
+        <div style="background: rgba(5,10,130,1);"></div>
+      </div>
+      <div id="legend-axis">
+        <span>0.0 clean</span>
+        <span>0.25</span>
+        <span>0.5</span>
+        <span>0.75</span>
+        <span>1.0+ smoke</span>
+      </div>
+      <div id="fire-legend">
+        <div id="fire-legend-dot"></div>
+        <span id="fire-legend-label">Active fire detections (FIRMS)</span>
+      </div>
+    </div>
+
+    <div id="settlement-section">
+      <div id="no-selection">Click any city on the map to view satellite imagery.</div>
+      <div id="s-header" style="display:none">
+        <h2 id="s-name"></h2>
+        <p id="s-info"></p>
+      </div>
+      <div id="wms-container" style="display:none">
+        <img id="wms-base"   src="" alt="Loading satellite image..."/>
+        <img id="wms-labels" src="" alt=""/>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson@3"></script>
+<script src="map.js"></script>
+</body>
+</html>
