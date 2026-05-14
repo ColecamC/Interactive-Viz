@@ -39,8 +39,10 @@ const BURN_HOTSPOTS = [
 
 // ── SVG SETUP ──────────────────────────────────────────────────────────────
 const mapArea = document.getElementById('map-area');
+const navEl = document.getElementById('site-nav');
+const navH = navEl ? navEl.getBoundingClientRect().height : 0;
 const width   = mapArea.offsetWidth || (window.innerWidth - 380);
-const height  = mapArea.offsetHeight || window.innerHeight;
+const height  = mapArea.offsetHeight || (window.innerHeight - navH);
 const svg     = d3.select('#map-svg')         
   .attr('width', width)
   .attr('height', height);

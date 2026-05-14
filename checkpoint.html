@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Project 3 Checkpoint · August Complex Fire 2020</title>
+  <link rel="stylesheet" href="css/site-nav.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
 
@@ -34,34 +35,6 @@
       text-decoration: none;
     }
     a:hover { text-decoration: underline; }
-
-    .top-bar {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-      padding: 12px 24px;
-      background: rgba(8, 14, 12, 0.92);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(8px);
-    }
-
-    .top-bar .brand {
-      font-family: 'Space Mono', monospace;
-      font-size: 0.68rem;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: var(--accent);
-    }
-
-    .top-bar nav {
-      display: flex;
-      gap: 20px;
-      font-size: 0.85rem;
-    }
 
     .wrap {
       max-width: 920px;
@@ -289,12 +262,14 @@
   </style>
 </head>
 <body>
-  <div class="top-bar">
-    <span class="brand">Interactive viz · checkpoint</span>
-    <nav>
-      <a href="index.html">Open smoke tracker map</a>
-    </nav>
-  </div>
+  <header id="site-nav" role="navigation" aria-label="Site">
+    <span class="nav-brand">August Complex · 2020</span>
+    <div class="nav-links">
+      <a href="index.html">Smoke &amp; AOD map</a>
+      <a href="new_page/">Burnt scars</a>
+      <span class="nav-current" title="This page">Project writeup</span>
+    </div>
+  </header>
 
   <div class="wrap">
     <header class="doc-head">

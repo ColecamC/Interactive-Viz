@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>California August Complex Fire · Burn Scar</title>
+  <link rel="stylesheet" href="../css/site-nav.css">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500&display=swap');
 
@@ -14,19 +15,23 @@
       font-family: 'Inter', sans-serif;
       color: white;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
     }
 
 #container {
   display: flex;
-  height: 100vh;
+  flex: 1;
+  min-height: 0;
   overflow: hidden; 
 }
 
 #map-area {
   flex: 1;
-  min-width: 0;    
+  min-width: 0;
+  min-height: 0;
   position: relative;
-  height: 100vh;
 }
 
     #panel {
@@ -152,6 +157,14 @@
   </style>
 </head>
 <body>
+<header id="site-nav" role="navigation" aria-label="Site">
+  <span class="nav-brand">August Complex · 2020</span>
+  <div class="nav-links">
+    <a href="../index.html">Smoke &amp; AOD map</a>
+    <span class="nav-current" title="This page">Burnt scars</span>
+    <a href="../checkpoint.html">Project writeup</a>
+  </div>
+</header>
 <div id="container">
 
   <div id="map-area">

@@ -1,0 +1,64 @@
+/* Shared top navigation — include from repo root as css/site-nav.css
+   From new_page/: ../css/site-nav.css */
+
+#site-nav {
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 20px;
+  background: #080e0c;
+  border-bottom: 1px solid #152018;
+}
+
+#site-nav .nav-brand {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ff6b35;
+  white-space: nowrap;
+}
+
+#site-nav .nav-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+#site-nav a {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6a8a72;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 2px;
+  border: 1px solid transparent;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+#site-nav a:hover {
+  color: #ff6b35;
+  border-color: #1f3a28;
+  background: rgba(255, 107, 53, 0.06);
+}
+
+#site-nav .nav-current {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #e8f0ec;
+  padding: 6px 10px;
+  border-radius: 2px;
+  border: 1px solid #ff6b35;
+  background: rgba(255, 107, 53, 0.08);
+}

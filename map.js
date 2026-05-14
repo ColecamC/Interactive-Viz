@@ -301,7 +301,7 @@ function drawSettlements(settlements) {
       .attr('cx', d => projection([d.Longitude, d.Latitude])[0])
       .attr('cy', d => projection([d.Longitude, d.Latitude])[1])
       .attr('r', 4)
-      .attr('fill', d => d.Urborrur === 'U' ? '#6aacdb' : '#d4c98a')
+      .attr('fill', d => d.Urborrur === 'U' ? '#4a2358' : '#d4c98a')
       .on('click', function(event, d) {
         event.stopPropagation();
         if (selected) d3.select(selected).classed('selected', false);
