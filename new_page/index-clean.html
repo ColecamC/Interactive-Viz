@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>California August Complex Fire · Burn Scar</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500&display=swap');
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #070f0d;
+      font-family: 'Inter', sans-serif;
+      color: white;
+      overflow: hidden;
+    }
+
+#container {
+  display: flex;
+  height: 100vh;
+  overflow: hidden; 
+}
+
+#map-area {
+  flex: 1;
+  min-width: 0;    
+  position: relative;
+  height: 100vh;
+}
+
+    #panel {
+      width: 380px;
+      background: #080e0c;
+      border-left: 1px solid #152018;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    #panel-header { padding: 20px 20px 16px; border-bottom: 1px solid #152018; }
+
+#fire-summary {
+  padding: 16px 20px;
+  border-bottom: 1px solid #152018;
+  font-size: 0.78rem;
+  color: #e5e5e5;
+  line-height: 1.7;
+  font-weight: 300;
+}
+    
+#panel-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.9rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #ff6b35;
+  margin: 0 0 4px;
+  font-weight: 700; 
+}
+
+    #panel-subtitle {
+  font-size: 0.80rem;    
+  color: #7aaa8a;      
+  margin: 0;
+  font-weight: 250;
+}
+
+    #settlement-section { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    #s-header { padding: 16px 20px 12px; border-bottom: 1px solid #152018; }
+
+    #s-name { font-family: 'Space Mono', monospace; font-size: 0.95rem; margin: 0 0 4px; color: #fff; }
+
+    #s-info { font-size: 0.75rem; color: #658d71; margin: 0; font-weight: 300; }
+
+    /* REPLACE WITH: */
+    #wms-container {
+    width: 100%;
+    flex: 1;
+    overflow: hidden;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    }
+
+.wms-item + .wms-item { border-top: 1px solid #152018; }
+
+
+    .wms-item { flex: 1; position: relative; overflow: hidden; }
+
+    .wms-item + .wms-item { border-left: 1px solid #152018; }
+
+    .wms-item img {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .wms-labels-img { opacity: 0.85; mix-blend-mode: multiply; }
+
+    .wms-item-label {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      text-align: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.5rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.9);
+      background: rgba(0,0,0,0.6);
+      padding: 4px 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    #no-selection {
+      padding: 20px;
+      font-size: 0.75rem;
+      color: #7aaa8a; 
+      font-style: italic;
+      line-height: 1.6;
+    }
+
+    circle.settlement { stroke: none; opacity: 0.7; cursor: pointer; transition: opacity 0.15s; }
+    circle.settlement:hover { opacity: 1; }
+    circle.selected { stroke: white; stroke-width: 1.5; opacity: 1; }
+    .settlement-layer { pointer-events: all; }
+
+    #map-overlay { position: absolute; top: 20px; left: 20px; pointer-events: none; }
+
+    #map-overlay h1 {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+      margin: 0;
+    }
+
+    /* #map-svg { background: transparent; } */
+    #map-svg {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+  </style>
+</head>
+<body>
+<div id="container">
+
+  <div id="map-area">
+    <svg id="map-svg"></svg>
+    <div id="map-overlay">
+      <h1>August Complex Fire 2020 · Burn Scar</h1>
+    </div>
+  </div>
+
+  <div id="panel">
+    <div id="panel-header">
+      <p id="panel-title">August Complex Fire</p>
+      <p id="panel-subtitle">Burn scar comparison · Before vs After</p> 
+    </div>
+
+    <div id="fire-summary">
+  <p>The August Complex Fire was the California fire that burned more than a million acres of land (about 1% of California's total land of 100 million acres).</p>
+</div>
+
+    <div id="settlement-section">
+      <div id="no-selection">Click any city to compare satellite imagery before and after the fire.</div>
+      <div id="s-header" style="display:none">
+        <h2 id="s-name"></h2>
+        <p id="s-info"></p>
+      </div>
+      <div id="wms-container" style="display:none">
+        <div class="wms-item">
+          <img id="wms-before" src="" alt="Loading..."/>
+          <img id="wms-before-labels" class="wms-labels-img" src="" alt=""/>
+          <div class="wms-item-label">Before Fire</div>
+        </div>
+        <div class="wms-item">
+          <img id="wms-after" src="" alt="Loading..."/>
+          <img id="wms-after-labels" class="wms-labels-img" src="" alt=""/>
+          <div class="wms-item-label">After fire</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson@3"></script>
+<script src="map-clean.js"></script>
+</body>
+</html>
