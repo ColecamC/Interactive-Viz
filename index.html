@@ -14,11 +14,75 @@
       font-family: 'Inter', sans-serif;
       color: white;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ── TOP NAV ────────────────────────────────────────────── */
+    #site-nav {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 10px 20px;
+      background: #080e0c;
+      border-bottom: 1px solid #152018;
+    }
+
+    #site-nav .nav-brand {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #ff6b35;
+      white-space: nowrap;
+    }
+
+    #site-nav .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    #site-nav a {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #6a8a72;
+      text-decoration: none;
+      padding: 6px 10px;
+      border-radius: 2px;
+      border: 1px solid transparent;
+      transition: color 0.15s, border-color 0.15s, background 0.15s;
+    }
+
+    #site-nav a:hover {
+      color: #ff6b35;
+      border-color: #1f3a28;
+      background: rgba(255, 107, 53, 0.06);
+    }
+
+    #site-nav .nav-current {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #e8f0ec;
+      padding: 6px 10px;
+      border-radius: 2px;
+      border: 1px solid #ff6b35;
+      background: rgba(255, 107, 53, 0.08);
     }
 
     #container {
       display: flex;
-      height: 100vh;
+      flex: 1;
+      min-height: 0;
     }
 
     #map-area {
@@ -428,6 +492,14 @@
   </style>
 </head>
 <body>
+<header id="site-nav" role="navigation" aria-label="Site">
+  <span class="nav-brand">August Complex · 2020</span>
+  <div class="nav-links">
+    <span class="nav-current" title="This page">Smoke &amp; AOD map</span>
+    <a href="new_page/">Burnt scars</a>
+    <a href="checkpoint.html">Project writeup</a>
+  </div>
+</header>
 <div id="container">
 
   <div id="map-area">
@@ -476,11 +548,11 @@
     <div id="legend-section">
       <div id="legend-label">Aerosol Optical Depth (AOD)</div>
       <div id="legend-bins">
-        <div style="background: rgba(180,220,255,0.35);"></div>
-        <div style="background: rgba(100,170,255,0.55);"></div>
-        <div style="background: rgba(50,110,255,0.72);"></div>
-        <div style="background: rgba(20,55,210,0.88);"></div>
-        <div style="background: rgba(5,10,130,1);"></div>
+        <div style="background: rgba(255, 248, 200, 0.45);"></div>
+        <div style="background: rgba(255, 214, 90, 0.75);"></div>
+        <div style="background: rgba(255, 150, 50, 0.88);"></div>
+        <div style="background: rgba(255, 85, 30, 0.92);"></div>
+        <div style="background: rgba(160, 25, 20, 1);"></div>
       </div>
       <div id="legend-axis">
         <span>0.0 clean</span>

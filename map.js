@@ -26,8 +26,10 @@ function effectiveAerosolGroupOpacity() {
 
 // ── SVG SETUP ──────────────────────────────────────────────────────────────
 const svg = d3.select('#map-svg');
+const navEl = document.getElementById('site-nav');
+const navH = navEl ? navEl.getBoundingClientRect().height : 0;
 const width  = window.innerWidth - 380;
-const height = window.innerHeight;
+const height = window.innerHeight - navH;
 svg.attr('width', width).attr('height', height);
 
 const projection = d3.geoMercator()
