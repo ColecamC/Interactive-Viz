@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Project 3 Checkpoint · August Complex Fire 2020</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
+
+    * { box-sizing: border-box; }
+
+    :root {
+      --bg: #070f0d;
+      --panel: #080e0c;
+      --border: #152018;
+      --accent: #ff6b35;
+      --muted: #3a5a44;
+      --text: #e8f0ec;
+      --dim: #6a8a72;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      font-weight: 400;
+      line-height: 1.65;
+      font-size: 1.02rem;
+    }
+
+    a {
+      color: #7ec8ff;
+      text-decoration: none;
+    }
+    a:hover { text-decoration: underline; }
+
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 24px;
+      background: rgba(8, 14, 12, 0.92);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+    }
+
+    .top-bar .brand {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .top-bar nav {
+      display: flex;
+      gap: 20px;
+      font-size: 0.85rem;
+    }
+
+    .wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 32px 24px 80px;
+    }
+
+    header.doc-head {
+      margin-bottom: 40px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header.doc-head .eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 0 0 10px;
+    }
+
+    header.doc-head h1 {
+      margin: 0 0 12px;
+      font-size: clamp(1.65rem, 4vw, 2.15rem);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    header.doc-head .subtitle {
+      margin: 0;
+      font-size: 0.95rem;
+      font-weight: 300;
+      color: var(--muted);
+      max-width: 52ch;
+    }
+
+    /* — Map figures (imgs/) — */
+    .map-gallery {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 48px;
+    }
+
+    @media (max-width: 800px) {
+      .map-gallery {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    figure.map-cap {
+      margin: 0;
+      padding: 0;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    figure.map-cap:hover {
+      border-color: #2a4034;
+      box-shadow: 0 0 0 1px rgba(255, 107, 53, 0.25);
+    }
+
+    figure.map-cap:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    figure.map-cap img {
+      display: block;
+      width: 100%;
+      height: auto;
+      vertical-align: middle;
+      pointer-events: none;
+    }
+
+    figure.map-cap figcaption {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .gallery-intro {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 0 0 14px;
+    }
+
+    /* — Body copy — */
+    article.writeup h2 {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin: 36px 0 16px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+
+    article.writeup h2:first-of-type {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+
+    article.writeup p {
+      margin: 0 0 1.1em;
+      color: #c5d4c8;
+      font-weight: 300;
+    }
+
+    article.writeup p strong {
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    footer {
+      margin-top: 56px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    /* — Fullscreen image lightbox — */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 56px 20px 28px;
+      background: rgba(4, 10, 8, 0.94);
+      cursor: zoom-out;
+      animation: lightbox-in 0.2s ease-out;
+    }
+
+    .lightbox[hidden] {
+      display: none !important;
+    }
+
+    @keyframes lightbox-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .lightbox-inner {
+      max-width: min(96vw, 1600px);
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      cursor: default;
+    }
+
+    .lightbox-inner img {
+      display: block;
+      max-width: 100%;
+      max-height: calc(92vh - 72px);
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 4px;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
+    }
+
+    .lightbox-caption {
+      margin: 0;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--dim);
+      text-align: center;
+      max-width: 56ch;
+    }
+
+    .lightbox-close {
+      position: fixed;
+      top: 14px;
+      right: 16px;
+      z-index: 2001;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .lightbox-close:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .lightbox-close:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    body.lightbox-open {
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-bar">
+    <span class="brand">Interactive viz · checkpoint</span>
+    <nav>
+      <a href="index.html">Open smoke tracker map</a>
+    </nav>
+  </div>
+
+  <div class="wrap">
+    <header class="doc-head">
+      <p class="eyebrow">Project 3 checkpoint</p>
+      <h1>California August Complex Fire — smoke, settlements &amp; time</h1>
+      <p class="subtitle">NASA MODIS MCD19A2 · MAIAC aerosol optical depth (550&nbsp;nm) · FIRMS fire detections · Aug–Nov&nbsp;2020</p>
+    </header>
+
+    <p class="gallery-intro">Map captures · current build · click to expand</p>
+    <div class="map-gallery">
+      <figure class="map-cap" tabindex="0" role="button" aria-label="Expand figure 1: map and temporal controls">
+        <img src="imgs/checkpoint-map-01.png" loading="lazy" alt="Map overview with date controls and California terrain" />
+        <figcaption>Fig. 1 · Map &amp; temporal controls</figcaption>
+      </figure>
+      <figure class="map-cap" tabindex="0" role="button" aria-label="Expand figure 2: AOD legend and smoke opacity">
+        <img src="imgs/checkpoint-map-02.png" loading="lazy" alt="Map with AOD legend and smoke opacity slider" />
+        <figcaption>Fig. 2 · AOD legend &amp; smoke opacity</figcaption>
+      </figure>
+      <figure class="map-cap" tabindex="0" role="button" aria-label="Expand figure 3: settlements and satellite context">
+        <img src="imgs/checkpoint-map-03.png" loading="lazy" alt="Settlement selected with satellite context" />
+        <figcaption>Fig. 3 · Settlements &amp; satellite context</figcaption>
+      </figure>
+    </div>
+
+    <article class="writeup">
+      <h2>Goals &amp; scope</h2>
+      <p>We designed our visualization to explore how climate-related events, specifically wildfires and aerosol spread, affect regions and communities across California. We chose the NASA MODIS aerosol data early in the project because it visually captured smoke and atmospheric patterns related to climate change. We initially experimented with plotting aerosol data across the entire United States, alongside fire activity and settlement datasets, but this quickly became too cluttered and slow to render. To improve the performance of our visualization we narrowed the scope down to California, which also allowed us to focus on specific wildfire events.</p>
+      <p>At first, we considered centering the project around the Pacific Palisades fire, but that fire proved to be too small to be visually compelling, and most of the smoke blew off into the Pacific Ocean due to the proximity of the fire to the coast. We ultimately decided to visualize the 2020 California wildfire season from August to November because it better demonstrated the spread and progression of smoke over time. This led us to create a temporal visualization that shows wildfire progression alongside the aerosol intensity. We wanted the project to be more than just an animated map, so we added interactive settlement points that let users explore how individual areas were affected. Clicking a point opens a side panel containing information on the site and before-and-after satellite imagery of burn scars, which helps users connect environmental changes with real locations.</p>
+
+      <h2>Design decisions</h2>
+      <p>Several design decisions were made to improve the usability. We used a dark basemap with California topography instead of a full satellite layer because the satellite imagery across the entire map would introduce too much clutter. The topographic layer still provides geographic context while allowing the aerosol and fire layers to remain the primary focus. We also added an opacity slider for the aerosol layer so that users could adjust visibility to focus on other map elements when needed. Settlement markers were reduced to only the most affected locations after early versions were overcrowded with points. We carefully selected satellite images that provided the clearest view of each burn scar, prioritizing images with minimal cloud cover, little to no snow, and the least amount of blurriness so the differences between pre-fire and post-fire conditions were easier to interpret.</p>
+
+      <h2>Encoding &amp; interaction</h2>
+      <p>The visualization combines different visual encodings and interaction techniques to make the data easier to explore. Color intensity and opacity show aerosol concentration and smoke spread, while geographic position shows where settlements and fires are located. We also used temporal animation to show how fires changed over time instead of treating them like one static event. Clicking and hover interactions let users explore specific areas in more detail without cluttering the map with too much text or too many annotations.</p>
+
+      <h2>Process &amp; effort</h2>
+      <p>The development process was very collaborative and iterative. In the beginning, the entire team brainstormed possible directions and datasets together before dividing the responsibilities. Members focused on different components such as data processing, fire layers, settlement integration, interface design, and developing the interactive elements. We would work in pairs and small groups to combine features and troubleshoot. Using separate pages allowed us to work simultaneously while also minimizing merge conflicts. We communicated through group chats and video calls where we regularly discussed our progress, tested design choices, and decided on future feature additions.</p>
+      <p>Overall, we spent about 30–40 people-hours developing the project. The most time-consuming aspects were processing and aligning the NASA datasets, improving the website performance for the multiple layers we used, and refining the interactive components. A lot of time was also spent experimenting with different visual styles, map layers, and layouts.</p>
+    </article>
+
+    <footer>
+      Text adapted from <strong>Project 3 Checkpoint</strong> (PDF). Figures are exports from the interactive visualization in this repository.
+    </footer>
+  </div>
+
+  <div id="lightbox" class="lightbox" hidden role="dialog" aria-modal="true" aria-labelledby="lightbox-caption">
+    <button type="button" class="lightbox-close" id="lightbox-close">Close</button>
+    <div class="lightbox-inner">
+      <img id="lightbox-img" src="" alt="" />
+      <p id="lightbox-caption" class="lightbox-caption"></p>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const lightbox = document.getElementById('lightbox');
+      const lbImg = document.getElementById('lightbox-img');
+      const lbCap = document.getElementById('lightbox-caption');
+      const lbClose = document.getElementById('lightbox-close');
+      const figures = document.querySelectorAll('.map-gallery figure.map-cap');
+
+      function openLightbox(src, alt, captionText) {
+        lbImg.src = src;
+        lbImg.alt = alt;
+        lbCap.textContent = captionText;
+        lightbox.hidden = false;
+        document.body.classList.add('lightbox-open');
+        lbClose.focus();
+      }
+
+      function closeLightbox() {
+        lightbox.hidden = true;
+        document.body.classList.remove('lightbox-open');
+        lbImg.removeAttribute('src');
+        lbImg.alt = '';
+      }
+
+      figures.forEach(function (fig) {
+        const img = fig.querySelector('img');
+        const cap = fig.querySelector('figcaption');
+        if (!img) return;
+
+        function activate() {
+          openLightbox(img.getAttribute('src'), img.getAttribute('alt') || '', cap ? cap.textContent : '');
+        }
+
+        fig.addEventListener('click', function (e) {
+          e.preventDefault();
+          activate();
+        });
+
+        fig.addEventListener('keydown', function (e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            activate();
+          }
+        });
+      });
+
+      lightbox.addEventListener('click', function (e) {
+        if (e.target === lightbox) closeLightbox();
+      });
+
+      lbClose.addEventListener('click', function (e) {
+        e.stopPropagation();
+        closeLightbox();
+      });
+
+      document.addEventListener('keydown', function (e) {
+        if (!lightbox.hidden && e.key === 'Escape') closeLightbox();
+      });
+    })();
+  </script>
+</body>
+</html>

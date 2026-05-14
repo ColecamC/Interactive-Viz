@@ -17,6 +17,13 @@ const SPEEDS = [
 ];
 let speedIndex = 0;
 
+// ── SMOKE / AEROSOL OVERLAY OPACITY (slider 0–100% → whole CA tile stack only) ─
+let aerosolUserFactor = 1;
+
+function effectiveAerosolGroupOpacity() {
+  return aerosolUserFactor;
+}
+
 // ── SVG SETUP ──────────────────────────────────────────────────────────────
 const svg = d3.select('#map-svg');
 const width  = window.innerWidth - 380;
@@ -31,13 +38,68 @@ const projection = d3.geoMercator()
 const path = d3.geoPath().projection(projection);
 const g = svg.append('g');
 
+/** Circle DOM node for the selected settlement — used to position the mini WMS popover in screen space */
+let selectedSettlementCircle = null;
+
+function updateMiniMapPosition() {
+  const pop = document.getElementById('mini-wms-popover');
+  if (!pop || pop.style.display === 'none' || !selectedSettlementCircle) return;
+
+  const mapArea = document.getElementById('map-area');
+  const rect = selectedSettlementCircle.getBoundingClientRect();
+  const mar = mapArea.getBoundingClientRect();
+  const pad = 12;
+  const popW = 220;
+  let left = rect.right - mar.left + pad;
+  let top = rect.top - mar.top;
+
+  if (left + popW > mar.width - 8) left = rect.left - mar.left - popW - pad;
+  left = Math.max(8, Math.min(left, mar.width - popW - 8));
+  top = Math.max(8, Math.min(top, mar.height - 228));
+
+  pop.style.left = `${left}px`;
+  pop.style.top = `${top}px`;
+}
+
 const zoom = d3.zoom()
   .scaleExtent([1, 20])
-  .on('zoom', ({ transform }) => g.attr('transform', transform));
+  .on('zoom', ({ transform }) => {
+    g.attr('transform', transform);
+    updateMiniMapPosition();
+  });
 svg.call(zoom);
+
+window.addEventListener('resize', () => {
+  updateMiniMapPosition();
+});
 
 // ── WMS HELPER ─────────────────────────────────────────────────────────────
 const WMS_BASE = 'https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?';
+
+/** MODIS Combined MAIAC L2G AOD (MCD19A2 family) — NASA GIBS EPSG:4326 “best” WMS */
+const GIBS_AEROSOL_LAYER = 'MODIS_Combined_MAIAC_L2G_AerosolOpticalDepth';
+/** Same lon/lat window as the shaded-relief basemap (California view) */
+const GIBS_CA_BBOX = '-125,32,-114,42';
+let aerosolWmsWidth = 512;
+let aerosolWmsHeight = 512;
+
+function buildGibsMaiacAodUrl(dateStr) {
+  const p = new URLSearchParams({
+    SERVICE: 'WMS',
+    REQUEST: 'GetMap',
+    VERSION: '1.1.1',
+    LAYERS: GIBS_AEROSOL_LAYER,
+    STYLES: '',
+    SRS: 'EPSG:4326',
+    BBOX: GIBS_CA_BBOX,
+    WIDTH: String(aerosolWmsWidth),
+    HEIGHT: String(aerosolWmsHeight),
+    FORMAT: 'image/png',
+    TRANSPARENT: 'TRUE',
+    TIME: dateStr,
+  });
+  return WMS_BASE + p.toString();
+}
 
 function getWMSUrl(layer, lat, lon, bufferDeg, extraParams = {}) {
   const bbox = `${lon - bufferDeg},${lat - bufferDeg},${lon + bufferDeg},${lat + bufferDeg}`;
@@ -90,7 +152,8 @@ function drawElevationBasemap() {
     .style('opacity', 0.85);
 }
 
-// ── AEROSOL TILE LAYER ──────────────────────────────────────────────────────
+// ── AEROSOL TILE LAYER (group opacity = smoke slider; tiles swap at 0/1 for date) ─
+let aerosolGroup = null;
 let tileA = null;
 let tileB = null;
 let activeTile = 'A';
@@ -98,41 +161,74 @@ let activeTile = 'A';
 function initAerosolLayer() {
   const [x0, y1] = projection([-125, 32]);
   const [x1, y0] = projection([-114, 42]);
+  const rawW = Math.round(Math.abs(x1 - x0));
+  const rawH = Math.round(Math.abs(y1 - y0));
+  aerosolWmsWidth = Math.max(256, Math.min(2048, rawW || 512));
+  aerosolWmsHeight = Math.max(256, Math.min(2048, rawH || 512));
+
+  aerosolGroup = g.append('g')
+    .attr('class', 'aerosol-layer-group')
+    .attr('clip-path', 'url(#california-clip)')
+    .style('opacity', effectiveAerosolGroupOpacity())
+    .style('pointer-events', 'none');
 
   const commonAttrs = sel => sel
     .attr('x', x0).attr('y', y0)
     .attr('width', x1 - x0).attr('height', y1 - y0)
     .attr('preserveAspectRatio', 'none')
-    .attr('clip-path', 'url(#california-clip)')
     .style('mix-blend-mode', 'normal');
 
-  tileA = g.append('image').attr('class', 'aerosol-layer tile-a');
-  tileB = g.append('image').attr('class', 'aerosol-layer tile-b');
-  commonAttrs(tileA).style('opacity', 0).style('filter', 'blur(5px) hue-rotate(180deg) saturate(2.5) brightness(0.8)');
-  commonAttrs(tileB).style('opacity', 0).style('filter', 'blur(5px) hue-rotate(180deg) saturate(2.5) brightness(0.8)');
+  const aerosolFilter = 'saturate(1.45) brightness(0.94)';
+  tileA = aerosolGroup.append('image').attr('class', 'aerosol-layer tile-a');
+  tileB = aerosolGroup.append('image').attr('class', 'aerosol-layer tile-b');
+  commonAttrs(tileA).style('opacity', 0).style('filter', aerosolFilter);
+  commonAttrs(tileB).style('opacity', 0).style('filter', aerosolFilter);
+}
+
+function setAerosolTileMessage(dateStr, suffix) {
+  const el = document.getElementById('point-count');
+  if (el) el.textContent = suffix ? `${dateStr} · ${suffix}` : dateStr;
 }
 
 function renderAerosolForDate(dateStr) {
-  document.getElementById('point-count').textContent = dateStr;
+  setAerosolTileMessage(dateStr, '');
   if (!tileA) return;
 
-  const src = `data/aerosol_tiles_august_complex/${dateStr}.png`;
+  const src = buildGibsMaiacAodUrl(dateStr);
 
   if (activeTile === 'A') {
-    tileB.attr('xlink:href', src);
-    tileB.node().onload = () => {
+    const img = tileB.node();
+    img.onload = () => {
       tileA.style('opacity', 0);
-      tileB.style('opacity', 0.65);
+      tileB.style('opacity', 1);
       activeTile = 'B';
+      setAerosolTileMessage(dateStr, '');
     };
-  } else {
-    tileA.attr('xlink:href', src);
-    tileA.node().onload = () => {
+    img.onerror = () => {
       tileB.style('opacity', 0);
-      tileA.style('opacity', 0.65);
-      activeTile = 'A';
+      console.warn('Aerosol tile missing or failed:', src);
+      setAerosolTileMessage(dateStr, 'no aerosol tile');
     };
+    tileB.attr('href', src).attr('xlink:href', src);
+  } else {
+    const img = tileA.node();
+    img.onload = () => {
+      tileB.style('opacity', 0);
+      tileA.style('opacity', 1);
+      activeTile = 'A';
+      setAerosolTileMessage(dateStr, '');
+    };
+    img.onerror = () => {
+      tileA.style('opacity', 0);
+      console.warn('Aerosol tile missing or failed:', src);
+      setAerosolTileMessage(dateStr, 'no aerosol tile');
+    };
+    tileA.attr('href', src).attr('xlink:href', src);
   }
+}
+
+function reapplyAerosolOpacityFromSlider() {
+  if (aerosolGroup) aerosolGroup.style('opacity', effectiveAerosolGroupOpacity());
 }
 
 // ── FIRE DOTS (FIRMS CSV) ───────────────────────────────────────────────────
@@ -186,7 +282,14 @@ function drawSettlements(settlements) {
 
   let selected = null;
   const circleGroup = g.append('g').attr('class', 'settlement-layer');
-  const labelGroup  = g.append('g').attr('class', 'label-layer');
+  const selectedCityLabel = g.append('g').attr('class', 'selected-city-label').style('visibility', 'hidden');
+
+  function clearSettlementSelection() {
+    selectedCityLabel.style('visibility', 'hidden').selectAll('*').remove();
+    const mini = document.getElementById('mini-wms-popover');
+    if (mini) mini.style.display = 'none';
+    selectedSettlementCircle = null;
+  }
 
   circleGroup
     .selectAll('circle')
@@ -202,46 +305,44 @@ function drawSettlements(settlements) {
         if (selected) d3.select(selected).classed('selected', false);
         selected = this;
         d3.select(this).classed('selected', true);
+        selectedSettlementCircle = this;
 
         document.getElementById('no-selection').style.display = 'none';
         document.getElementById('s-header').style.display = 'block';
-        document.getElementById('wms-container').style.display = 'block';
+
         document.getElementById('s-name').textContent = d.Name1;
         document.getElementById('s-info').textContent =
           `${d.Country}  ·  Pop: ${d.ES00POP?.toLocaleString()}  ·  ${d.Urborrur === 'U' ? 'Urban' : 'Rural'}`;
 
-        const buf    = 0.12;
-        const base   = document.getElementById('wms-base');
-        const labels = document.getElementById('wms-labels');
-        base.style.opacity = '0.3';
-        base.onload  = () => { base.style.opacity = '1'; };
-        base.onerror = () => { base.style.opacity = '1'; };
-        base.src = getWMSUrl(
+        const [cx, cy] = projection([d.Longitude, d.Latitude]);
+        selectedCityLabel.selectAll('*').remove();
+        selectedCityLabel.style('visibility', 'visible')
+          .append('text')
+          .attr('x', cx + 8)
+          .attr('y', cy - 6)
+          .text(d.Name1);
+
+        const buf = 0.12;
+        const baseMini = document.getElementById('mini-wms-base');
+        const labelsMini = document.getElementById('mini-wms-labels');
+        const miniPop = document.getElementById('mini-wms-popover');
+        baseMini.style.opacity = '0.45';
+        baseMini.onload = () => { baseMini.style.opacity = '1'; };
+        baseMini.onerror = () => { baseMini.style.opacity = '1'; };
+        baseMini.src = getWMSUrl(
           'Landsat_WELD_CorrectedReflectance_TrueColor_Global_Annual',
           d.Latitude, d.Longitude, buf,
           { TIME: '2000-01-01T00:00:00Z' }
         );
-        labels.src = getWMSUrl('Reference_Labels_15m', d.Latitude, d.Longitude, buf);
+        labelsMini.src = getWMSUrl('Reference_Labels_15m', d.Latitude, d.Longitude, buf);
+        miniPop.style.display = 'block';
+        updateMiniMapPosition();
       });
-
-  labelGroup
-    .selectAll('text')
-    .data(california)
-    .join('text')
-      .attr('x', d => projection([d.Longitude, d.Latitude])[0] + 5)
-      .attr('y', d => projection([d.Longitude, d.Latitude])[1] + 4)
-      .text(d => d.Name1)
-      .attr('font-size', '3px')
-      .attr('fill', 'white')
-      .attr('paint-order', 'stroke')
-      .attr('stroke', '#0a1f1a')
-      .attr('stroke-width', '0.8px')
-      .style('pointer-events', 'none');
 
   svg.on('click', () => {
     document.getElementById('no-selection').style.display = 'block';
     document.getElementById('s-header').style.display = 'none';
-    document.getElementById('wms-container').style.display = 'none';
+    clearSettlementSelection();
     if (selected) { d3.select(selected).classed('selected', false); selected = null; }
   });
 }
@@ -325,11 +426,22 @@ Promise.all([
   d3.json('data/california.geojson'),
 ]).then(([world, settlements, california]) => {
   setupCaliforniaClip(california);
-  drawCaliforniaBorder(california);
   drawElevationBasemap();
   initAerosolLayer();
+  const smokeSlider = document.getElementById('aerosol-opacity-slider');
+  if (smokeSlider) aerosolUserFactor = +smokeSlider.value / 100;
+  reapplyAerosolOpacityFromSlider();
+  drawCaliforniaBorder(california);
   initFireLayer();
   drawSettlements(settlements);
   updateSliderUI(0);
   loadFIRMS('data/firms_august_complex.csv');
 }).catch(err => console.error('Load error:', err));
+
+document.getElementById('aerosol-opacity-slider').addEventListener('input', function() {
+  const v = +this.value;
+  aerosolUserFactor = v / 100;
+  const pct = document.getElementById('aerosol-opacity-pct');
+  if (pct) pct.textContent = String(v);
+  reapplyAerosolOpacityFromSlider();
+});
