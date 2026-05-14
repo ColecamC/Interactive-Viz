@@ -232,12 +232,34 @@
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #ff4400;
-      box-shadow: 0 0 4px #ff6600;
+      background: #1b00cd;
+      box-shadow: 0 0 4px #1b00cd;
       flex-shrink: 0;
     }
 
     #fire-legend-label {
+      font-size: 0.62rem;
+      color: #2a4a33;
+      font-family: 'Space Mono', monospace;
+    }
+
+    #settlement-legend {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    #settlement-legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2d7a3a;
+      box-shadow: 0 0 4px #2d7a3a;
+      flex-shrink: 0;
+    }
+
+    #settlement-legend-label {
       font-size: 0.62rem;
       color: #2a4a33;
       font-family: 'Space Mono', monospace;
@@ -505,6 +527,10 @@
       <div id="fire-legend">
         <div id="fire-legend-dot"></div>
         <span id="fire-legend-label">Active fire detections (FIRMS)</span>
+      </div>
+      <div id="settlement-legend">
+        <div id="settlement-legend-dot"></div>
+        <span id="settlement-legend-label">Settlements (GRUMP)</span>
       </div>
       <div id="aerosol-opacity-row">
         <div id="aerosol-opacity-label">Smoke layer opacity</div>

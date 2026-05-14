@@ -233,6 +233,20 @@ function reapplyAerosolOpacityFromSlider() {
   if (aerosolGroup) aerosolGroup.style('opacity', effectiveAerosolGroupOpacity());
 }
 
+const _prefetchCache = new Set();
+function prefetchAerosolTiles(fromIndex, count = 5) {
+  for (let i = 1; i <= count; i++) {
+    const idx = fromIndex + i;
+    if (idx >= DATES.length) break;
+    const url = buildGibsMaiacAodUrl(DATES[idx]);
+    if (!_prefetchCache.has(url)) {
+      _prefetchCache.add(url);
+      const img = new Image();
+      img.src = url;
+    }
+  }
+}
+
 // ── FIRE DOTS (FIRMS CSV) ───────────────────────────────────────────────────
 let firmsData = {};
 let fireLayer = null;
@@ -264,9 +278,9 @@ function renderFiresForDate(dateStr) {
         .attr('cx', d => { const p = projection([d.lon, d.lat]); return p ? p[0] : -9999; })
         .attr('cy', d => { const p = projection([d.lon, d.lat]); return p ? p[1] : -9999; })
         .attr('r', 2.5)
-        .attr('fill', '#ff4400')
+        .attr('fill', '#1b00cd')
         .attr('opacity', 0.9)
-        .style('filter', 'drop-shadow(0 0 3px #ff6600)')
+        .style('filter', 'drop-shadow(0 0 3px #1b00cd)')
         .attr('pointer-events', 'none'),
       update => update
         .attr('cx', d => { const p = projection([d.lon, d.lat]); return p ? p[0] : -9999; })
@@ -301,7 +315,7 @@ function drawSettlements(settlements) {
       .attr('cx', d => projection([d.Longitude, d.Latitude])[0])
       .attr('cy', d => projection([d.Longitude, d.Latitude])[1])
       .attr('r', 4)
-      .attr('fill', d => d.Urborrur === 'U' ? '#4a2358' : '#d4c98a')
+      .attr('fill', d => d.Urborrur === 'U' ? '#1a5c2a' : '#2d7a3a')
       .on('click', function(event, d) {
         event.stopPropagation();
         if (selected) d3.select(selected).classed('selected', false);
@@ -369,6 +383,7 @@ function updateSliderUI(index) {
 
   renderAerosolForDate(dateStr);
   renderFiresForDate(dateStr);
+  prefetchAerosolTiles(index);
 }
 
 document.getElementById('date-slider').addEventListener('input', function() {
